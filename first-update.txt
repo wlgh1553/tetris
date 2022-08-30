@@ -1,57 +1,78 @@
-#includestdio.h
-#includestdlib.h
-#includeconio.h
-#includeWindows.h
-#includetime.h
-#pragma warning (disable4996)
+#include<stdio.h>
+#include<stdlib.h>
+#include<conio.h>
+#include<Windows.h>
+#include<time.h>
+#pragma warning (disable:4996)
 
 
 
-x y 좌표 결정해주기 위해 gotoxy함수 선언
+//x y 좌표 결정해주기 위해 gotoxy함수 선언
 void gotoxy(int x, int y);
 
 
-게임 화면 프레임 잡기
-int frameArr[21][12] = { 0, };   화면 프레임 배열
-int score = 0;   현재 스코어
+//게임 화면 프레임 잡기
+int frameArr[21][12] = { 0, };   //화면 프레임 배열
+int score = 0;   //현재 스코어
 
+
+//내려오는 블록 구현
+int blockArr[4][4] = { 0, };   //빈칸은 0을 넣고, 블록 모양대로 2를 넣어주기
+int blockX, blockY;      //블록의 (0,0) 위치를 기록할건데
+int blockChoice;
+void blockShape(int);
+void block1();
+void block2();
+void block3();
+void block4();
+void block5();
+void block6();
+void block7();
+
+
+//스크린 출력 함수 (블록 및 프레임 모두 포함)
+void printScreen();
+//스크린 지워주는 함수
+void clearScreen();
 
 
 int main() {
 
-   score 출력
-   gotoxy(44, 4);
-   printf(socre  %d, score);
 
-   next 출력
-   gotoxy(44, 8);
-   printf(NEXT);
+   //랜덤함수 준비
+   srand((unsigned)time(NULL));
 
 
-   게임 틀 구성 (벽은 1, 공간은 0)
-   for (int i = 0; i  21; i++) {
+
+   //게임 틀 구성 (벽은 1, 공간은 0)
+   for (int i = 0; i < 21; i++) {
       frameArr[i][0] = 1;
       frameArr[i][11] = 1;
    }
-   for (int j = 0; j  12; j++) {
-      frameArr[0][j] = 1;
+   for (int j = 0; j < 12; j++) {
       frameArr[20][j] = 1;
    }
 
-   게임 화면 프레임 출력 (콘솔창에서 x축은 10만큼, y축은 2만큼 띄어줌)
-   int x = 10, y = 2;
-   for (int i = 0; i  21; i++) {
-      for (int j = 0; j  12; j++) {
-         gotoxy(x + j  2, y + i);
-         if (frameArr[i][j] == 1) printf(▩);
-         else printf(  );
+
+   //블록 시작되는 처음 위치 및 블록 모양 랜덤으로 결정
+   blockX = 0, blockY = rand() % 7 + 1;
+   blockChoice = rand() % 7 + 1;
+
+   //블록 시간 지연해가면서 출력하기
+   int nowTime = GetTickCount64();
+   while(1) {
+
+      
+
+
+      if (GetTickCount64() >= nowTime + 1000)
+      {
+         nowTime = GetTickCount64();
+         clearScreen();
+         blockX++;
+         printScreen();
       }
-      x = 10;
    }
-
-
-
-
 
 
 
@@ -59,7 +80,118 @@ int main() {
    return 0;
 }
 
+
+//gotoxy함수 정의
 void gotoxy(int x, int y){
    COORD pos = { x,y };
    SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), pos);
+}
+
+
+
+//블록 모양 알려주는 함수
+void blockShape(int x) {
+   switch (x) {
+   case 1:   block1(); break;
+   case 2: block2(); break;
+   case 3: block3(); break;
+   case 4: block4(); break;
+   case 5: block5(); break;
+   case 6: block6(); break;
+   case 7: block7(); break;
+   }
+   
+}
+
+
+
+
+void printScreen() {
+
+   //score 출력
+   gotoxy(44, 4);
+   printf("socre : %d", score);
+
+   //next 출력
+   gotoxy(44, 8);
+   printf("NEXT");
+
+
+
+   //임시로 블록 내려오게 해보자!
+   blockShape(blockChoice);
+
+   for (int i = 0; i < 4; i++) {
+      for (int j = 0; j < 4; j++) {
+         frameArr[blockX + i][blockY + j] = blockArr[i][j];
+      }
+   }
+
+
+   //게임 화면 프레임 출력 (콘솔창에서 x축은 10만큼, y축은 2만큼 띄어줌)
+   int x = 10, y = 2;
+   for (int i = 0; i < 21; i++) {
+      for (int j = 0; j < 12; j++) {
+         gotoxy(x + j * 2, y + i);
+         if (frameArr[i][j] == 1) printf("▩");
+         else if (frameArr[i][j] == 2) printf("■");
+         else printf("  ");
+      }
+      x = 10;
+   }
+}
+
+
+
+void clearScreen() {
+   system("cls");
+   for (int i = 0; i < 4; i++) {
+      for (int j = 0; j < 4; j++) {
+         frameArr[blockX + i][blockY + j] = 0;
+      }
+   }
+}
+
+
+
+
+
+//블록 종류 나열!!
+void block1() {
+   for (int i = 0; i < 4; i++)
+      blockArr[i][0] = 2;
+}
+void block2() {
+   for (int i = 0; i < 3; i++)
+      blockArr[i][0] = 2;
+   blockArr[2][1] = 2;
+}
+void block3() {
+   for (int i = 0; i < 3; i++)
+      blockArr[i][1] = 2;
+   blockArr[1][0] = 2;
+}
+void block4() {
+   for (int i = 0; i < 2; i++) {
+      for (int j = 0; j < 2; j++)
+         blockArr[i][j] = 2;
+   }
+}
+void block5() {
+   for (int i = 0; i < 3; i++)
+      blockArr[i][1] = 2;
+   blockArr[2][0] = 2;
+}
+void block6() {
+   for (int i = 1; i < 3; i++)
+      blockArr[0][i] = 2;
+   for (int i = 0; i < 2; i++)
+      blockArr[1][i] = 2;
+
+}
+void block7() {
+   for (int i = 0; i < 2; i++)
+      blockArr[0][i] = 2;
+   for (int i = 1; i < 3; i++)
+      blockArr[1][i] = 2;
 }
