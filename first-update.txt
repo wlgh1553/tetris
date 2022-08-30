@@ -12,7 +12,7 @@ void gotoxy(int x, int y);
 
 
 //게임 화면 프레임 잡기
-int frameArr[21][12] = { 0, };   //화면 프레임 배열
+int frameArr[21][12] = { 0, };   //화면 프레임 배열     0:공백, 1:틀, 2:내려오는 블록, 3:굳어버린 블록
 int score = 0;   //현재 스코어
 
 
@@ -20,6 +20,7 @@ int score = 0;   //현재 스코어
 int blockArr[4][4] = { 0, };   //빈칸은 0을 넣고, 블록 모양대로 2를 넣어주기
 int blockX, blockY;      //블록의 (0,0) 위치를 기록할건데
 int blockChoice;
+int blockFlag = 1;      //블록을 멈출건지 내릴건지 확인하는 플래그       // 0 : 스탑 / 1 :고
 void blockShape(int);
 void block1();
 void block2();
@@ -30,10 +31,17 @@ void block6();
 void block7();
 
 
+
 //스크린 출력 함수 (블록 및 프레임 모두 포함)
 void printScreen();
+//스크린 움직임 나타내는 함수
+void moveScreen();
 //스크린 지워주는 함수
 void clearScreen();
+
+
+//게임오버 플래그
+int gameOverFlag = 0;
 
 
 int main() {
@@ -55,26 +63,43 @@ int main() {
 
 
    //블록 시작되는 처음 위치 및 블록 모양 랜덤으로 결정
-   blockX = 0, blockY = rand() % 7 + 1;
+   blockY = 0, blockX = rand() % 7 + 1;
    blockChoice = rand() % 7 + 1;
 
-   //블록 시간 지연해가면서 출력하기
-   int nowTime = GetTickCount64();
-   while(1) {
-
-      
+   //천장에 닿지 않을 때까지 반복
+   while (gameOverFlag == 0) {
 
 
-      if (GetTickCount64() >= nowTime + 1000)
-      {
-         nowTime = GetTickCount64();
-         clearScreen();
-         blockX++;
-         printScreen();
+      //내리던 것 계속 내리기
+      int nowTime = GetTickCount64();
+      while (blockFlag == 1) {
+         if (GetTickCount64() > nowTime + 1000){
+            nowTime = GetTickCount64();
+
+            clearScreen();   //지우고
+            blockY++;
+            printScreen();   //그리고
+         }
+         moveScreen();   //움직이고
+         
+         
+      }
+
+      //내리던 것 멈추기, 그리고 새로운 것 출력 준비
+      if (blockFlag == 0) {
+
+         //새로운 것 출력 준비
+         for (int i = 0; i < 4; i++)
+            for (int j = 0; j < 4; j++)
+               blockArr[i][j] = 0;
+         blockFlag = 1;
+         blockY = 0, blockX = rand() % 7 + 1;
+         blockChoice = rand() % 7 + 1;
       }
    }
+   
 
-
+   printf("Game Over!!");
 
 
    return 0;
@@ -104,6 +129,44 @@ void blockShape(int x) {
 }
 
 
+void moveScreen() {
+   clearScreen();   //지우고
+   char pressKey;
+
+   if (_kbhit()) {
+      pressKey = _getch();
+      int flag = 0;
+
+      switch (pressKey) {
+
+      case 75:   //왼쪽방향
+         if (frameArr[blockY][blockX - 1] != 1 && frameArr[blockY][blockX - 1] != 3)
+            blockX--;
+         break;
+
+
+      case 77:   //오른쪽방향
+         if (frameArr[blockY][blockX + 1] != 1 && frameArr[blockY][blockX + 1] != 3)
+            blockX++;
+         break;
+
+
+      case 80:   //아래쪽방향
+         if (frameArr[blockY + 1][blockX] != 1 && frameArr[blockY + 1][blockX] != 3)
+            blockY++;
+         break;
+
+      }
+
+
+      printScreen();   //그리고
+   
+   }
+
+
+}
+
+
 
 
 void printScreen() {
@@ -118,36 +181,61 @@ void printScreen() {
 
 
 
-   //임시로 블록 내려오게 해보자!
+   //블록 모양 결정해서 프레임에 블록 모양 넣기
    blockShape(blockChoice);
 
    for (int i = 0; i < 4; i++) {
       for (int j = 0; j < 4; j++) {
-         frameArr[blockX + i][blockY + j] = blockArr[i][j];
+         if (blockArr[i][j] == 2 && frameArr[blockY + i][blockX + j] != 1)
+            frameArr[blockY + i][blockX + j] = 2;
       }
    }
 
 
-   //게임 화면 프레임 출력 (콘솔창에서 x축은 10만큼, y축은 2만큼 띄어줌)
-   int x = 10, y = 2;
+   //게임 화면 프레임 출력 (콘솔창에서 x축은 10만큼, y축은 3만큼 띄어줌)
+   int x = 10, y = 3;
+
+   int flag = 0;   //만약 접한다면 flag를 1로 바꾸어 줄 것임!!
    for (int i = 0; i < 21; i++) {
       for (int j = 0; j < 12; j++) {
          gotoxy(x + j * 2, y + i);
          if (frameArr[i][j] == 1) printf("▩");
-         else if (frameArr[i][j] == 2) printf("■");
+         else if (frameArr[i][j] == 2 || frameArr[i][j] == 3) printf(" %d",frameArr[i][j]);
          else printf("  ");
+
+         if (i < 20 && ((frameArr[i][j] == 2 && frameArr[i + 1][j] == 1) || frameArr[i][j] == 2 && frameArr[i + 1][j] == 3)) { 
+            flag = 1; 
+         }
       }
       x = 10;
    }
+   //■
+
+   //접하는 상황!
+   if (flag == 1)   {
+      for (int i = 0; i < 4; i++) {
+         for (int j = 0; j < 4; j++) {
+            if (frameArr[blockY + i][blockX + j] == 2) {
+               frameArr[blockY + i][blockX + j] = 3;
+               if (blockY + i == 0) {
+                  gameOverFlag = 1;
+               }
+            }
+         }
+      }
+      blockFlag = 0;
+   }
+
 }
 
 
 
+
 void clearScreen() {
-   system("cls");
    for (int i = 0; i < 4; i++) {
       for (int j = 0; j < 4; j++) {
-         frameArr[blockX + i][blockY + j] = 0;
+         if (frameArr[blockY + i][blockX + j] != 1 && frameArr[blockY + i][blockX + j] != 3)
+            frameArr[blockY + i][blockX + j] = 0;
       }
    }
 }
