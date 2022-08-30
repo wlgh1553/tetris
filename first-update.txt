@@ -1,0 +1,65 @@
+#includestdio.h
+#includestdlib.h
+#includeconio.h
+#includeWindows.h
+#includetime.h
+#pragma warning (disable4996)
+
+
+
+x y 좌표 결정해주기 위해 gotoxy함수 선언
+void gotoxy(int x, int y);
+
+
+게임 화면 프레임 잡기
+int frameArr[21][12] = { 0, };   화면 프레임 배열
+int score = 0;   현재 스코어
+
+
+
+int main() {
+
+   score 출력
+   gotoxy(44, 4);
+   printf(socre  %d, score);
+
+   next 출력
+   gotoxy(44, 8);
+   printf(NEXT);
+
+
+   게임 틀 구성 (벽은 1, 공간은 0)
+   for (int i = 0; i  21; i++) {
+      frameArr[i][0] = 1;
+      frameArr[i][11] = 1;
+   }
+   for (int j = 0; j  12; j++) {
+      frameArr[0][j] = 1;
+      frameArr[20][j] = 1;
+   }
+
+   게임 화면 프레임 출력 (콘솔창에서 x축은 10만큼, y축은 2만큼 띄어줌)
+   int x = 10, y = 2;
+   for (int i = 0; i  21; i++) {
+      for (int j = 0; j  12; j++) {
+         gotoxy(x + j  2, y + i);
+         if (frameArr[i][j] == 1) printf(▩);
+         else printf(  );
+      }
+      x = 10;
+   }
+
+
+
+
+
+
+
+
+   return 0;
+}
+
+void gotoxy(int x, int y){
+   COORD pos = { x,y };
+   SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), pos);
+}
