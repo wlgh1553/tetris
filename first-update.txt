@@ -20,16 +20,17 @@ int score = 0;   //현재 스코어
 int blockArr[4][4] = { 0, };   //빈칸은 0을 넣고, 블록 모양대로 2를 넣어주기
 int blockX, blockY;      //블록의 (0,0) 위치를 기록할건데
 int blockChoice;
+int blockVersion;
 int blockFlag = 1;      //블록을 멈출건지 내릴건지 확인하는 플래그       // 0 : 스탑 / 1 :고
-void blockShape(int);
-void block1();
-void block2();
-void block3();
-void block4();
-void block5();
-void block6();
-void block7();
-
+void blockShape(int, int);
+void block1(int);
+void block2(int);
+void block3(int);
+void block4(int);
+void block5(int);
+void block6(int);
+void block7(int);
+void blockEnter(int, int);
 
 
 //스크린 출력 함수 (블록 및 프레임 모두 포함)
@@ -65,6 +66,7 @@ int main() {
    //블록 시작되는 처음 위치 및 블록 모양 랜덤으로 결정
    blockY = 0, blockX = rand() % 7 + 1;
    blockChoice = rand() % 7 + 1;
+   blockVersion = rand() % 4 + 1;
 
    //천장에 닿지 않을 때까지 반복
    while (gameOverFlag == 0) {
@@ -95,6 +97,7 @@ int main() {
          blockFlag = 1;
          blockY = 0, blockX = rand() % 7 + 1;
          blockChoice = rand() % 7 + 1;
+         blockVersion = rand() % 4 + 1;
       }
    }
    
@@ -115,17 +118,21 @@ void gotoxy(int x, int y){
 
 
 //블록 모양 알려주는 함수
-void blockShape(int x) {
-   switch (x) {
-   case 1:   block1(); break;
-   case 2: block2(); break;
-   case 3: block3(); break;
-   case 4: block4(); break;
-   case 5: block5(); break;
-   case 6: block6(); break;
-   case 7: block7(); break;
+void blockShape(int choice, int version) {
+
+   int p = version;
+
+   switch (choice) {
+   case 1:   block1(p); break;
+   case 2: block2(p); break;
+   case 3: block3(p); break;
+   case 4: block4(p); break;
+   case 5: block5(p); break;
+   case 6: block6(p); break;
+   case 7: block7(p); break;
    }
-   
+
+   blockVersion = p;
 }
 
 
@@ -156,9 +163,13 @@ void moveScreen() {
             blockY++;
          break;
 
+
+      case 32:   //스페이스바 모양변경!
+         blockEnter(blockChoice, blockVersion);
+         break;
       }
 
-
+      
       printScreen();   //그리고
    
    }
@@ -182,7 +193,7 @@ void printScreen() {
 
 
    //블록 모양 결정해서 프레임에 블록 모양 넣기
-   blockShape(blockChoice);
+   blockShape(blockChoice, blockVersion);
 
    for (int i = 0; i < 4; i++) {
       for (int j = 0; j < 4; j++) {
@@ -244,42 +255,202 @@ void clearScreen() {
 
 
 
-//블록 종류 나열!!
-void block1() {
+
+void blockEnter(int choice, int version) {
+
    for (int i = 0; i < 4; i++)
-      blockArr[i][0] = 2;
+      for (int j = 0; j < 4; j++)
+         blockArr[i][j] = 0;
+
+   version++;
+   if (version > 4) version -= 4;
+   
+   blockShape(choice, version);
 }
-void block2() {
-   for (int i = 0; i < 3; i++)
-      blockArr[i][0] = 2;
-   blockArr[2][1] = 2;
-}
-void block3() {
-   for (int i = 0; i < 3; i++)
-      blockArr[i][1] = 2;
-   blockArr[1][0] = 2;
-}
-void block4() {
-   for (int i = 0; i < 2; i++) {
-      for (int j = 0; j < 2; j++)
-         blockArr[i][j] = 2;
+
+
+
+//블록 종류 나열!!
+void block1(int x) {
+
+   switch (x) {
+
+   case 1:
+      for (int i = 0; i < 4; i++)
+         blockArr[i][0] = 2;
+      break;
+   case 2: 
+      for (int j = 0; j < 4; j++)
+         blockArr[0][j] = 2;
+      break;
+   case 3:
+      for (int i = 0; i < 4; i++)
+         blockArr[i][0] = 2;
+      break;
+   case 4: 
+      for (int j = 0; j < 4; j++)
+         blockArr[0][j] = 2;
+      break;
    }
+      
 }
-void block5() {
-   for (int i = 0; i < 3; i++)
-      blockArr[i][1] = 2;
-   blockArr[2][0] = 2;
-}
-void block6() {
-   for (int i = 1; i < 3; i++)
-      blockArr[0][i] = 2;
-   for (int i = 0; i < 2; i++)
-      blockArr[1][i] = 2;
+void block2(int x) {
+
+   switch (x) {
+   case 1:
+      for (int i = 0; i < 3; i++)
+         blockArr[i][1] = 2;
+      blockArr[1][0] = 2;
+      break;
+
+   case 2:
+      for (int j = 0; j < 3; j++)
+         blockArr[0][j] = 2;
+      blockArr[1][1] = 2;
+      break;
+
+   case 3:
+      for (int i = 0; i < 3; i++)
+         blockArr[i][0] = 2;
+      blockArr[1][1] = 2;
+      break;
+
+   case 4:
+      for (int j = 0; j < 3; j++)
+         blockArr[1][j] = 2;
+      blockArr[0][1] = 2;
+      break;
+   }
+
 
 }
-void block7() {
-   for (int i = 0; i < 2; i++)
-      blockArr[0][i] = 2;
-   for (int i = 1; i < 3; i++)
-      blockArr[1][i] = 2;
+void block3(int x) {
+   switch (x) {
+   case 1:
+      for (int i = 0; i < 3; i++)
+         blockArr[i][0] = 2;
+      blockArr[2][1] = 2;
+      break;
+
+   case 2:
+      for (int j = 0; j < 3; j++)
+         blockArr[1][j] = 2;
+      blockArr[0][2] = 2;
+      break;
+
+   case 3:
+      for (int i = 0; i < 3; i++)
+         blockArr[i][1] = 2;
+      blockArr[0][0] = 2;
+      break;
+
+   case 4:
+      for (int j = 0; j < 3; j++)
+         blockArr[0][j] = 2;
+      blockArr[1][0] = 2;
+      break;
+   }
 }
+void block4(int x) {
+   switch (x) {
+   case 1:
+   case 2:
+   case 3:
+   case 4: 
+      for (int i = 0; i < 2; i++)
+         for (int j = 0; j < 2; j++)
+            blockArr[i][j] = 2;
+      break;
+   
+   }
+}
+
+void block5(int x) {
+   
+   switch (x) {
+   case 1: 
+      for (int i = 0; i < 3; i++)
+         blockArr[i][1] = 2;
+      blockArr[2][0] = 2;
+      break;
+   case 2:
+      for (int j = 0; j < 3; j++)
+         blockArr[0][j] = 2;
+      blockArr[1][2] = 2;
+      break;
+   case 3:
+      for (int i = 0; i < 3; i++)
+         blockArr[i][0] = 2;
+      blockArr[0][1] = 2;
+      break;
+   case 4:
+      for (int j = 0; j < 3; j++)
+         blockArr[1][j] = 2;
+      blockArr[0][0] = 2;
+      break;
+   }
+
+}
+void block6(int x) {
+
+   switch (x) {
+   case 1:
+      for (int j = 1; j < 3; j++)
+         blockArr[0][j] = 2;
+      for (int j = 0; j < 2; j++)
+         blockArr[1][j] = 2;
+      break;
+   case 2: 
+      for (int i = 0; i < 2; i++)
+         blockArr[i][0] = 2;
+      for (int i = 1; i < 3; i++)
+         blockArr[i][1] = 2;
+      break;
+   case 3:
+      for (int j = 1; j < 3; j++)
+         blockArr[0][j] = 2;
+      for (int j = 0; j < 2; j++)
+         blockArr[1][j] = 2;
+      break;
+   case 4:
+      for (int i = 0; i < 2; i++)
+         blockArr[i][0] = 2;
+      for (int i = 1; i < 3; i++)
+         blockArr[i][1] = 2;
+      break;
+   }
+
+}
+void block7(int x) {
+   
+   switch (x) {
+   case 1:
+      for (int j = 0; j < 2; j++)
+         blockArr[0][j] = 2;
+      for (int j = 1; j < 3; j++)
+         blockArr[1][j] = 2;
+      break;
+   case 2:
+      for (int i = 0; i < 2; i++)
+         blockArr[i][1] = 2;
+      for (int i = 1; i < 3; i++)
+         blockArr[i][0] = 2;
+      break;
+   case 3:
+      for (int j = 0; j < 2; j++)
+         blockArr[0][j] = 2;
+      for (int j = 1; j < 3; j++)
+         blockArr[1][j] = 2;
+      break;
+   case 4:
+      for (int i = 0; i < 2; i++)
+         blockArr[i][1] = 2;
+      for (int i = 1; i < 3; i++)
+         blockArr[i][0] = 2;
+      break;
+   }
+}
+
+
+
+
